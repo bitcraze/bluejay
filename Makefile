@@ -12,10 +12,10 @@ DEADTIMES		= 0 5 10 15 20 25 30 40 50 70 90 120
 PWM_FREQS		= 24 48 96
 
 # Example single target
-LAYOUT		?= A
+LAYOUT		?= O
 MCU			?= H
-DEADTIME	?= 5
-PWM			?= 24
+DEADTIME	?= 10
+PWM			?= 48
 
 # Directory configuration
 OUTPUT_DIR	?= build
@@ -162,4 +162,7 @@ clean:
 efm8load: single_target
 	$(EFM8_LOAD_BIN) -p $(EFM8_LOAD_PORT) -b $(EFM8_LOAD_BAUD) -w $(SINGLE_TARGET_HEX)
 
-.PHONY: single_target all changelog help clean efm8load check_commit
+flash_jlink:
+	JLinkExe -Device EFM8BB21F16A -If C2 -Speed 1000 -AutoConnect 1 -CommandFile tools/flash.jlink
+
+.PHONY: single_target all changelog help clean efm8load check_commit flash_jlink
