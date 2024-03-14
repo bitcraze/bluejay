@@ -94,8 +94,12 @@ abd:
     mov  Baudh, #high(BAUDTIME)
 
 wait_for_low:
-    jnb  RTX_PORT.RTX_PIN, ($+5)
-    ajmp wait_for_low
+    jnb  RTX_PORT.RTX_PIN, id1
+    djnz Xl, wait_for_low                        ; Subtract 1 from X (BOOT_DELAY)
+    djnz Xh, wait_for_low
+    djnz Cmdl, wait_for_low
+
+    ajmp exit
 
 ; Identifier (BOOT_SIGN) scanning with timeout and checksum
 id1:
@@ -193,6 +197,8 @@ exit:
     ; Lock flash by setting invalid values
     mov  BL_Flash_Key_1, #0
     mov  BL_Flash_Key_2, #0
+
+    ljmp shutdown_mcu
 
     ljmp 0000h
 rst:
@@ -421,6 +427,23 @@ wait1:
 
     setb Bit_Reg.1
     ret
+
+; Put MCU in deep shutdown mode
+shutdown_mcu:
+    ; Disable the WDT.
+    mov  WDTCN, #0DEh                   ; Disable watchdog
+    mov  WDTCN, #0ADh
+
+    clr  IE_EA                          ; Disable interrupts explicitly
+    mov  SFRPAGE, #20h
+    orl  REG1CN, #04h                   ; Disable 5V reg bias
+    orl  REG1CN, #80h                   ; Disable 5V reg
+    orl  REF0CN, #10h                   ; Internal LDO as ref
+    mov  SFRPAGE, #00h
+    mov  REG0CN, #08h                   ; Shotdown MCU by first setting STOPCF flag
+    mov  PCON0, #02h                    ; then set STOP in power control
+
+    ajmp shutdown_mcu                   ; Do it over and over again, this should never be reached
 
 BOOT_SIGN: DB "BLHeli"
 BOOT_MSG: DB "471d"                     ; Interface-MCU_BootlaoderRevision
