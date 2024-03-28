@@ -93,13 +93,26 @@ abd:
     mov  Baudl, #low(BAUDTIME)
     mov  Baudh, #high(BAUDTIME)
 
-wait_for_low:
-    jnb  RTX_PORT.RTX_PIN, id1
-    djnz Xl, wait_for_low                        ; Subtract 1 from X (BOOT_DELAY)
-    djnz Xh, wait_for_low
-    djnz Cmdl, wait_for_low
+; Wait for a while for the signal to go low, if it does not happen within
+; ~48 seconds, go to deep sleep. This is enough time for the web config too to connect
+; to all the ESCs
+    setb PSW.3                          ; Switch to bank 1 to make my loop seemless to
+    mov R0, #0                          ;  the rest of the program
+    mov R1, #0
+    mov R2, #0                         
+    mov R3, #8                          ; Set wait loop for about 48 seconds
+wait_for_low:                           
+    jnb  RTX_PORT.RTX_PIN, reached_low
+    djnz R0, wait_for_low
+    djnz R1, wait_for_low
+    djnz R2, wait_for_low
+    djnz R3, wait_for_low
 
+    clr PSW.3
     ajmp exit
+
+reached_low:
+    clr PSW.3
 
 ; Identifier (BOOT_SIGN) scanning with timeout and checksum
 id1:
