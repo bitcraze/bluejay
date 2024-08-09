@@ -453,17 +453,18 @@ ENDIF
 ; NOTE: Interrupts are not explicitly disabled. Assume higher priority
 ;       interrupts (Int0, Timer0) to be disabled at this point.
 IF PWM_BITS_H != PWM_8_BIT
-    ; Set power pwm auto-reload registers
+    ; Set lower part pf power & damp pwm auto-reload registers
     Set_Power_Pwm_Reg_L Temp2
-    Set_Power_Pwm_Reg_H Temp3
+    Set_Damp_Pwm_Reg_L Temp4
 ELSE
     Set_Power_Pwm_Reg_H Temp2
 ENDIF
 
 IF DEADTIME != 0
-    ; Set damp pwm auto-reload registers
+    ; Set higher part of power & damp pwm auto-reload registers
+    ; This way we minimaze the chance of PCA registers being updated on different cycles.
 IF PWM_BITS_H != PWM_8_BIT
-    Set_Damp_Pwm_Reg_L Temp4
+    Set_Power_Pwm_Reg_H Temp3
     Set_Damp_Pwm_Reg_H Temp5
 ELSE
     Set_Damp_Pwm_Reg_H Temp4
