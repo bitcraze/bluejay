@@ -73,6 +73,7 @@ We are in a very lucky position to have manufacturers who keep helping us out co
 * [T-Motor](https://tmotorhobby.com/) - for providing us with an AIO flight-controller
 * [TuneRC](https://www.tunerc.com/) - for providing us with AIO flight-controllers
 * [weBLEEDfpv](https://webleedfpv.com/) - for a set of "Gore V2" motors
+* [HAKRC](https://www.hakrc.com/) - for providing us with ESCs
 
 ## Contribute
 Any help you can provide is greatly appreciated!

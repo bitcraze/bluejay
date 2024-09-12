@@ -78,7 +78,7 @@ $include (Modules\Enums.asm)
 ;                                         PORT 0                   |  PORT 1                   |  PWM    COM    PWM    LED
 ;                                         P0 P1 P2 P3 P4 P5 P6 P7  |  P0 P1 P2 P3 P4 P5 P6 P7  |  inv    inv    side    n
 ;                                         -----------------------  |  -----------------------  |  -------------------------
-IF MCU_TYPE == MCU_BB1 or MCU_TYPE == MCU_BB2
+IF MCU_TYPE == MCU_BB2
     A_ EQU 1                            ; Vn Am Bm Cm __ RX __ __  |  Ap Ac Bp Bc Cp Cc __ __  |  no     no     high   _
     B_ EQU 2                            ; Vn Am Bm Cm __ RX __ __  |  Cc Cp Bc Bp Ac Ap __ __  |  no     no     high   _
     C_ EQU 3                            ; RX __ Vn Am Bm Cm Ap Ac  |  Bp Bc Cp Cc __ __ __ __  |  no     no     high   _
@@ -116,6 +116,8 @@ IF MCU_TYPE == MCU_BB51
     A_ EQU 1                            ; __ Bm Cm Am Vn RX __ __  |  Ap Ac Bp Bc Cp Cc __ __  |  no     no     low    _
     B_ EQU 2                            ; __ Bm Cm Am Vn RX __ __  |  Ac Ap Bc Bp Cc Cp __ __  |  no     yes    high   _
     C_ EQU 3                            ; __ Bm Cm Am Vn RX __ __  |  Ac Ap Bc Bp Cc Cp __ __  |  yes    yes    high   _
+    D_ EQU 4                            ; __ Bm Cm Am Vn RX __ __  |  Ap Ac Bp Bc Cp Cc __ __  |  no	 yes 	high   _
+	E_ EQU 5                            ; __ Cm Bm Am Vn RX __ __  |  Cp Bp Ap Cc Bc Ac __ __  |  no	 yes 	high   _
 ENDIF
 
 ; Select the port mapping to use (or unselect all for use with external batch compile file)
@@ -134,15 +136,11 @@ ENDIF
 
 PWM_CENTERED EQU DEADTIME > 0           ; Use center aligned pwm on ESCs with dead time
 
-IF MCU_TYPE == MCU_BB1
-    IS_MCU_48MHZ EQU 0
-ELSE
-    IS_MCU_48MHZ EQU 1
-ENDIF
+IS_MCU_48MHZ EQU 1
 
 IF PWM_FREQ == PWM_24 or PWM_FREQ == PWM_48 or PWM_FREQ == PWM_96
     ; Number of bits in pwm high byte
-    PWM_BITS_H EQU (2 + IS_MCU_48MHZ - PWM_CENTERED - PWM_FREQ)
+    PWM_BITS_H EQU (3 - PWM_CENTERED - PWM_FREQ)
 ENDIF
 
 $include (Modules\McuOffsets.asm)
@@ -150,30 +148,10 @@ $include (Modules\Codespace.asm)
 $include (Modules\Common.asm)
 $include (Modules\Macros.asm)
 
-;**** **** **** **** **** **** **** **** **** **** **** **** ****
-; Programming defaults
-;**** **** **** **** **** **** **** **** **** **** **** **** ****
-DEFAULT_PGM_RPM_POWER_SLOPE EQU 9       ; 0=Off,1..13 (Power limit factor in relation to rpm)
-DEFAULT_PGM_COMM_TIMING EQU 3           ; 1=Low 2=MediumLow 3=Medium 4=MediumHigh 5=High
-DEFAULT_PGM_DEMAG_COMP EQU 2            ; 1=Disabled 2=Low 3=High
-DEFAULT_PGM_DIRECTION EQU 1             ; 1=Normal 2=Reversed 3=Bidir 4=Bidir rev
-DEFAULT_PGM_BEEP_STRENGTH EQU 15        ; 0..255 (BLHeli_S is 1..255)
-DEFAULT_PGM_BEACON_STRENGTH EQU 80      ; 0..255
-DEFAULT_PGM_BEACON_DELAY EQU 5          ; 1=1m 2=2m 3=5m 4=10m 5=Infinite
-DEFAULT_PGM_ENABLE_TEMP_PROT EQU 0      ; 0=Disabled 1=80C 2=90C 3=100C 4=110C 5=120C 6=130C 7=140C
-
-DEFAULT_PGM_POWER_RATING EQU 1          ; 1=1S,2=2S+
-
-DEFAULT_PGM_BRAKE_ON_STOP EQU 0         ; 1=Enabled 0=Disabled
-DEFAULT_PGM_LED_CONTROL EQU 0           ; Byte for LED control. 2 bits per LED,0=Off,1=On
-
-DEFAULT_PGM_STARTUP_POWER_MIN EQU 120    ; 0..255 => (1000..1125 Throttle): value * (1000 / 2047) + 1000
-DEFAULT_PGM_STARTUP_BEEP EQU 1          ; 0=Short beep,1=Melody
-
-DEFAULT_PGM_STARTUP_POWER_MAX EQU 70    ; 0..255 => (1000..2000 Throttle): Maximum startup power
-DEFAULT_PGM_BRAKING_STRENGTH EQU 255    ; 0..255 => 0..100 % Braking
-
-DEFAULT_PGM_SAFETY_ARM EQU 0            ; EDT safety arm is disabled by default
+; This file is Searched within the INCDIR set in the Makefile.
+; This allows overwriting the settings by putting a file with the same name in
+; a different directory and setting that in INCDIR.
+$include (BluejaySettings.asm)
 
 ;**** **** **** **** **** **** **** **** **** **** **** **** ****
 ; Temporary register definitions
@@ -401,7 +379,7 @@ Eep_Pgm_Safety_Arm: DB DEFAULT_PGM_SAFETY_ARM ; Various flag settings: bit 0 is 
 
 Eep_Dummy: DB 0FFh                      ; EEPROM address for safety reason
 CSEG AT CSEG_NAME
-Eep_Name: DB "Bluejay (.0)    "         ; Name tag (16 Bytes)
+Eep_Name: DB "Bluejay (.1 RC1)"         ; Name tag (16 Bytes)
 
 CSEG AT CSEG_MELODY
 Eep_Pgm_Beep_Melody: DB 2,58,4,32,52,66,13,0,69,45,13,0,52,66,13,0,78,39,211,0,69,45,208,25,52,25,0
@@ -432,7 +410,7 @@ pgm_start:
     mov  WDTCN, #0DEh                   ; Disable watchdog (WDT)
     mov  WDTCN, #0ADh
     mov  SP, #Stack                     ; Initialize stack (16 bytes of indirect RAM)
-IF MCU_TYPE == MCU_BB1 or MCU_TYPE == MCU_BB2
+IF MCU_TYPE == MCU_BB2
     orl  VDM0CN, #080h                  ; Enable the VDD monitor
 ENDIF
     mov  RSTSRC, #06h                   ; Set missing clock and VDD monitor as a reset source if not 1S capable
@@ -582,21 +560,6 @@ setup_dshot_clear_flags:
 
     setb IE_EA                          ; Enable all interrupts
 
-; Setup variables for DShot150 (Only on 24MHz because frame length threshold cannot be scaled up)
-IF MCU_TYPE == MCU_BB1
-    mov  DShot_Timer_Preset, #-64       ; Load DShot sync timer preset (for DShot150)
-    mov  DShot_Pwm_Thr, #8              ; Load DShot qualification pwm threshold (for DShot150)
-    mov  DShot_Frame_Length_Thr, #160   ; Load DShot frame length criteria
-
-    Set_DShot_Tlm_Bitrate 187500        ; = 5/4 * 150000
-
-    ; Test whether signal is DShot150
-    mov  Rcp_Outside_Range_Cnt, #10     ; Set out of range counter
-    call wait100ms                      ; Wait for new RC pulse
-    mov  A, Rcp_Outside_Range_Cnt       ; Check if pulses were accepted
-    jz   arming_begin
-ENDIF
-
     mov  CKCON0, #0Ch                   ; Timer0/1 clock is system clock (for DShot300/600)
 
     ; Setup variables for DShot300
@@ -612,8 +575,7 @@ ENDIF
     mov  A, Rcp_Outside_Range_Cnt       ; Check if pulses were accepted
     jz   arming_begin
 
-; Setup variables for DShot600 (Only on 48MHz for performance reasons)
-IF MCU_TYPE == MCU_BB2 or MCU_TYPE == MCU_BB51
+    ; Setup variables for DShot600
     mov  DShot_Timer_Preset, #-64       ; Load DShot sync timer preset (for DShot600)
     mov  DShot_Pwm_Thr, #8              ; Load DShot pwm threshold (for DShot600)
     mov  DShot_Frame_Length_Thr, #40    ; Load DShot frame length criteria
@@ -625,7 +587,6 @@ IF MCU_TYPE == MCU_BB2 or MCU_TYPE == MCU_BB51
     call wait100ms                      ; Wait for new RC pulse
     mov  A, Rcp_Outside_Range_Cnt       ; Check if pulses were accepted
     jz   arming_begin
-ENDIF
 
     ; No valid signal detected, try again
     ljmp init_no_signal

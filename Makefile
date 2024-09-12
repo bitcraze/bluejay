@@ -1,12 +1,13 @@
 # Current version
 TAG			:= $(shell git describe --tags --abbrev=0)
 VERSION		?= $(TAG)
+SETTINGSDIR	?= ./src/Settings
 
 # Target parameters
 LAYOUTS		= A B C D E F G H I J K L M N O P Q R S T U V W Z \
 			  OA
 MCUS			= H
-LAYOUTS_X		= A B C
+LAYOUTS_X		= A B C D E
 MCUS_X		= X
 DEADTIMES		= 0 5 10 15 20 25 30 40 50 70 90 120
 PWM_FREQS		= 24 48 96
@@ -44,7 +45,6 @@ ASM_INC		= 								\
 			$(LAYOUTS:%=src/Layouts/%.inc)	\
 			src/Layouts/Base.inc			\
 			src/BLHeliBootLoad.inc			\
-			src/Silabs/SI_EFM8BB1_Defs.inc	\
 			src/Silabs/SI_EFM8BB2_Defs.inc	\
 			src/Silabs/SI_EFM8BB51_Defs.inc	\
 			src/Silabs/SI_EFM8LB1_Defs.inc	\
@@ -93,6 +93,7 @@ $(OUTPUT_DIR)/$(1)_$(2)_$(3)_$(4)_$(VERSION).OBJ : $(ASM_SRC) $(ASM_INC)
 	@mkdir -p $(OUTPUT_DIR)
 	@echo "AX51 : $$@"
 	@$(AX51) $(ASM_SRC) \
+		"INCDIR($(SETTINGSDIR)) " \
 		"DEFINE(ESCNO=$(_ESCNO)) " \
 		"DEFINE(MCU_TYPE=$(_MCU_TYPE)) "\
 		"DEFINE(DEADTIME=$(_DEADTIME)) "\
