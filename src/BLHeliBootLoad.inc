@@ -100,7 +100,7 @@ abd:
     mov R0, #0                          ;  the rest of the program
     mov R1, #0
     mov R2, #0                         
-    mov R3, #8                          ; Set wait loop for about 48 seconds
+    mov R3, #1                          ; Set wait loop for about 6 seconds
 wait_for_low:                           
     jnb  RTX_PORT.RTX_PIN, reached_low
     djnz R0, wait_for_low
@@ -443,9 +443,40 @@ wait1:
 
 ; Put MCU in deep shutdown mode
 shutdown_mcu:
+    ; Reinitialize ports to make sure we are in a safe state and not drawing any current
+    mov  P0, #P0_INIT
+    mov  P0MDIN, #P0_DIGITAL
+    mov  P0MDOUT, #P0_PUSHPULL
+    mov  P0, #P0_INIT
+    mov  P0SKIP, #P0_SKIP
+    mov  P1, #P1_INIT
+    mov  P1MDIN, #P1_DIGITAL
+    mov  P1MDOUT, #P1_PUSHPULL
+    mov  P1, #P1_INIT
+    mov  P1SKIP, #P1_SKIP
+    mov  P2MDOUT, #P2_PUSHPULL
+IF MCU_TYPE == MCU_BB2 or MCU_TYPE == MCU_BB51
+    ; Not available on BB1
+    mov  SFRPAGE, #20h
+    mov  P2MDIN, #P2_DIGITAL
+IF MCU_TYPE == MCU_BB2
+    ; Not available on BB51
+    mov  P2SKIP, #P2_SKIP
+ENDIF
+    mov  SFRPAGE, #00h
+ENDIF
+
     ; Disable the WDT.
     mov  WDTCN, #0DEh                   ; Disable watchdog
     mov  WDTCN, #0ADh
+
+    ; Disable peripherals initialized by the firmware
+    mov  CMP_CN0, #00h                  ; Disable comparator
+    mov  PCA0CN0, #00h                  ; PCA disabled
+    mov  PCA0CPM_POWER, #00h            ; Disable PWM module
+    mov  PCA0CPM_DAMP, #00h             ; Disable PWM module
+    mov  ADC0CN0, #00h                  ; ADC disabled
+    mov  XBR2, #00h                     ; Disable crossbar
 
     clr  IE_EA                          ; Disable interrupts explicitly
     mov  SFRPAGE, #20h
