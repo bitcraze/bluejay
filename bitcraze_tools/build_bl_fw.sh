@@ -13,15 +13,17 @@ pushd $source_path > /dev/null
 sed -i 's/^DEFAULT_PGM_DIRECTION EQU ./DEFAULT_PGM_DIRECTION EQU 1/' src/Settings/BluejaySettings.asm
 touch src/Settings/BluejaySettings.asm
 
+rm -Rf build
 make clean single_target
-cp build/hex/O_H_10_48_v0.21.1-RC1.hex $run_dir/cfbl2.1_esc_cw.hex
+cp build/hex/O_H_10_48_v0.21.1-RC1.hex $run_dir/cfbl2.1_esc_cww.hex
 
 # Change the default direction to counter-clockwise
 sed -i 's/^DEFAULT_PGM_DIRECTION EQU ./DEFAULT_PGM_DIRECTION EQU 2/' src/Settings/BluejaySettings.asm
 touch src/Settings/BluejaySettings.asm
 
+rm -Rf build
 make clean single_target
-cp build/hex/O_H_10_48_v0.21.1-RC1.hex $run_dir/cfbl2.1_esc_ccw.hex
+cp build/hex/O_H_10_48_v0.21.1-RC1.hex $run_dir/cfbl2.1_esc_cw.hex
 
 # Restore the original file
 git checkout src/Settings/BluejaySettings.asm
