@@ -3,4 +3,5 @@
 /tools/.wine
 *.diff
 .project
+*.hex
 
