@@ -32,7 +32,7 @@ touch src/Settings/BluejaySettings.asm
 rm -Rf build
 make clean single_target
 built_file=`ls build/hex/*.hex | cut -f 1 | head -n 1`
-cp $built_file $run_dir/cfbl2.1_esc_normal_m2-m4.hex
+cp $built_file $run_dir/cfbl2.1_esc_normal_m1-m3.hex
 
 # Change the default direction to counter-clockwise
 sed -i 's/^DEFAULT_PGM_DIRECTION EQU ./DEFAULT_PGM_DIRECTION EQU 2/' src/Settings/BluejaySettings.asm
@@ -40,7 +40,7 @@ touch src/Settings/BluejaySettings.asm
 
 rm -Rf build
 make clean single_target
-cp $built_file $run_dir/cfbl2.1_esc_reverse_m1-m3.hex
+cp $built_file $run_dir/cfbl2.1_esc_reverse_m2-m4.hex
 
 clean
 
